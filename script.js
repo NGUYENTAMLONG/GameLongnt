@@ -34,17 +34,28 @@ var monsterPosTarget = 0.65;
 var floorRotation = 0;
 var collisionObstacle = 10;
 var collisionBonus = 20;
-var gameStatus = "play";
+var gameStatus = "waitingToStart";
 var cameraPosGame = 160;
 var cameraPosGameOver = 260;
 var monsterAcceleration = 0.004;
 var malusClearColor = 0xb44b39;
 var malusClearAlpha = 0;
-var audio = new Audio(
-  "https://s3-us-west-2.amazonaws.com/s.cdpn.io/264161/Antonio-Vivaldi-Summer_01.mp3",
-);
 
-var fieldGameOver, fieldDistance;
+// Local BGM (GitHub Pages) — more reliable than remote CodePen S3
+var audio = new Audio("./audio/bgm.mp3");
+audio.loop = true;
+audio.preload = "auto";
+audio.volume = 0.75;
+audio.setAttribute("playsinline", "true");
+audio.setAttribute("webkit-playsinline", "true");
+
+var audioUnlocked = false;
+var audioShouldPlay = false;
+var introAutoTimer = null;
+var introCountdownTimer = null;
+var INTRO_AUTO_START_MS = 7000;
+
+var fieldGameOver, fieldDistance, startScreen, startBtn, autoStartSecEl;
 
 //SCREEN & MOUSE VARIABLES
 
@@ -136,7 +147,7 @@ function applyResponsiveCamera() {
   var portrait = HEIGHT > WIDTH;
   var narrow = WIDTH < 768;
   camera.fov = portrait ? 68 : narrow ? 58 : 50;
-  if (gameStatus === "play") {
+  if (gameStatus === "play" || gameStatus === "waitingToStart") {
     var pos = getPlayCameraPosition();
     camera.position.x = pos.x;
     camera.position.y = pos.y;
@@ -217,7 +228,58 @@ function handleWindowResize() {
   applyResponsiveCamera();
 }
 
+function unlockAudio() {
+  // Must run inside a user gesture on mobile / in-app browsers
+  var resume = audio.play();
+  if (resume && typeof resume.then === "function") {
+    return resume
+      .then(function () {
+        audioUnlocked = true;
+        if (!audioShouldPlay) {
+          audio.pause();
+          try {
+            audio.currentTime = 0;
+          } catch (e) {}
+        }
+      })
+      .catch(function () {
+        audioUnlocked = false;
+      });
+  }
+  audioUnlocked = true;
+  if (!audioShouldPlay) {
+    audio.pause();
+  }
+  return Promise.resolve();
+}
+
+function playGameAudio() {
+  audioShouldPlay = true;
+  audio.loop = true;
+  audio.muted = false;
+  audio.volume = 0.75;
+  var p = audio.play();
+  if (p && typeof p.then === "function") {
+    p.then(function () {
+      audioUnlocked = true;
+    }).catch(function () {
+      // Autoplay blocked (e.g. 7s timeout without tap) — resume on next tap
+      audioUnlocked = false;
+    });
+  } else {
+    audioUnlocked = true;
+  }
+}
+
+function ensureAudioPlaying() {
+  if (!audioShouldPlay) return;
+  if (audio.paused || audio.ended) {
+    playGameAudio();
+  }
+}
+
 function triggerJumpAction() {
+  ensureAudioPlaying();
   if (gameStatus == "play") hero.jump();
   else if (gameStatus == "readyToReplay") {
     replay();
@@ -225,14 +287,24 @@ function triggerJumpAction() {
 }
 
 function handleTouchStart(event) {
+  // During intro, never steal taps from the start UI (Messenger/Zalo)
+  if (gameStatus === "waitingToStart") {
+    unlockAudio();
+    return;
+  }
   lastTouchJumpTime = Date.now();
+  ensureAudioPlaying();
   if (event.cancelable) event.preventDefault();
   triggerJumpAction();
 }
 
 function handleMouseDown(event) {
-  // Ignore ghost clicks that follow a touch on mobile
+  if (gameStatus === "waitingToStart") {
+    unlockAudio();
+    return;
+  }
   if (Date.now() - lastTouchJumpTime < 600) return;
+  ensureAudioPlaying();
   triggerJumpAction();
 }
 
@@ -1463,8 +1535,65 @@ function init(event) {
   createBonusParticles();
   createObstacle();
   initUI();
-  resetGame();
+  prepareWaitingScene();
   loop();
+}
+
+function clearIntroTimers() {
+  if (introAutoTimer) {
+    clearTimeout(introAutoTimer);
+    introAutoTimer = null;
+  }
+  if (introCountdownTimer) {
+    clearInterval(introCountdownTimer);
+    introCountdownTimer = null;
+  }
+}
+
+function prepareWaitingScene() {
+  scene.add(hero.mesh);
+  hero.mesh.rotation.y = Math.PI / 2;
+  hero.mesh.position.y = 0;
+  hero.mesh.position.z = 0;
+  hero.mesh.position.x = 0;
+
+  monsterPos = 0.56;
+  monsterPosTarget = 0.65;
+  speed = 0;
+  level = 0;
+  distance = 0;
+  carrot.mesh.visible = true;
+  obstacle.mesh.visible = true;
+  gameStatus = "waitingToStart";
+  hero.status = "running";
+  hero.nod();
+  applyResponsiveCamera();
+
+  if (monster) {
+    var angle = Math.PI * monsterPos;
+    monster.mesh.position.y =
+      -floorRadius + Math.sin(angle) * (floorRadius + 12);
+    monster.mesh.position.x = Math.cos(angle) * (floorRadius + 15);
+    monster.mesh.rotation.z = -Math.PI / 2 + angle;
+  }
+  if (fieldDistance) fieldDistance.innerHTML = "000";
+
+  // Preload BGM while user reads the intro
+  try {
+    audio.load();
+  } catch (e) {}
+}
+
+function startGameFromIntro() {
+  if (gameStatus !== "waitingToStart") return;
+  clearIntroTimers();
+
+  if (startScreen) {
+    startScreen.classList.add("is-hidden");
+  }
+  document.body.classList.remove("is-intro");
+  lastTouchJumpTime = Date.now();
+  resetGame();
 }
 
 function resetGame() {
@@ -1485,9 +1614,7 @@ function resetGame() {
   hero.status = "running";
   hero.nod();
   applyResponsiveCamera();
-  try {
-    audio.play();
-  } catch (err) {}
+  playGameAudio();
   updateLevel();
   clearInterval(levelInterval);
   levelInterval = setInterval(updateLevel, levelUpdateFreq);
@@ -1496,12 +1623,46 @@ function resetGame() {
 function initUI() {
   fieldDistance = document.getElementById("distValue");
   fieldGameOver = document.getElementById("gameoverInstructions");
-  var giftNote = document.getElementById("giftNote");
-  if (giftNote) {
-    setTimeout(function () {
-      giftNote.classList.add("is-faded");
-    }, 3500);
+  startScreen = document.getElementById("startScreen");
+  startBtn = document.getElementById("startBtn");
+  autoStartSecEl = document.getElementById("autoStartSec");
+
+  var introStarted = false;
+  function onIntroStart(event) {
+    if (introStarted || gameStatus !== "waitingToStart") return;
+    introStarted = true;
+    if (event) {
+      if (event.cancelable) event.preventDefault();
+      if (event.stopPropagation) event.stopPropagation();
+    }
+    unlockAudio();
+    playGameAudio();
+    startGameFromIntro();
   }
+
+  // Multiple event types for Messenger / Zalo / iOS WebViews
+  if (startBtn) {
+    startBtn.addEventListener("touchstart", onIntroStart, { passive: false });
+    startBtn.addEventListener("pointerdown", onIntroStart, false);
+    startBtn.addEventListener("click", onIntroStart, false);
+  }
+
+  // 7s auto-start if user doesn't press
+  var remaining = Math.ceil(INTRO_AUTO_START_MS / 1000);
+  if (autoStartSecEl) autoStartSecEl.textContent = String(remaining);
+  introCountdownTimer = setInterval(function () {
+    remaining -= 1;
+    if (autoStartSecEl) {
+      autoStartSecEl.textContent = String(Math.max(remaining, 0));
+    }
+    if (remaining <= 0) clearInterval(introCountdownTimer);
+  }, 1000);
+
+  introAutoTimer = setTimeout(function () {
+    if (gameStatus === "waitingToStart") {
+      startGameFromIntro();
+    }
+  }, INTRO_AUTO_START_MS);
 }
 
 ////////////////////////////////////////////////
