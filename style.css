@@ -21,6 +21,10 @@ body {
   font-family: "Be Vietnam Pro", sans-serif;
 }
 
+body.is-intro {
+  touch-action: manipulation;
+}
+
 #world {
   position: absolute;
   inset: 0;
@@ -36,6 +40,11 @@ body {
   width: 100% !important;
   height: 100% !important;
   touch-action: none;
+  pointer-events: none;
+}
+
+body:not(.is-intro) #world canvas {
+  pointer-events: auto;
 }
 
 /* ——— Start / gift screen ——— */
@@ -55,7 +64,11 @@ body {
     rgba(214, 234, 230, 0.88) 45%,
     rgba(255, 197, 162, 0.35) 100%
   );
-  backdrop-filter: blur(2px);
+  /* Avoid backdrop-filter — flaky in Messenger/Zalo WebViews */
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
   transition: opacity 420ms ease, visibility 420ms ease;
 }
 
@@ -94,9 +107,12 @@ body {
 
 #startBtn {
   appearance: none;
+  -webkit-appearance: none;
   border: none;
   border-radius: 999px;
   padding: 14px 36px;
+  min-height: 48px;
+  min-width: 140px;
   font-family: inherit;
   font-size: clamp(15px, 3.8vw, 17px);
   font-weight: 600;
@@ -104,7 +120,12 @@ body {
   color: #fff;
   background: #dc5f45;
   cursor: pointer;
+  pointer-events: auto;
   touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  position: relative;
+  z-index: 21;
   transition: transform 160ms ease, background 160ms ease;
 }
 

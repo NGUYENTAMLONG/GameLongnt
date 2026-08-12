@@ -217,6 +217,20 @@ function handleWindowResize() {
   applyResponsiveCamera();
 }
 
+function isIntroOrUiTarget(target) {
+  if (!target) return false;
+  if (gameStatus === "waitingToStart") return true;
+  if (target.closest) {
+    return !!(
+      target.closest("#startScreen") ||
+      target.closest("#startBtn") ||
+      target.closest("button") ||
+      target.closest("a")
+    );
+  }
+  return false;
+}
+
 function triggerJumpAction() {
   if (gameStatus == "waitingToStart") return;
   if (gameStatus == "play") hero.jump();
@@ -226,12 +240,15 @@ function triggerJumpAction() {
 }
 
 function handleTouchStart(event) {
+  // Messenger/Zalo WebViews: preventDefault on document kills button clicks
+  if (isIntroOrUiTarget(event.target)) return;
   lastTouchJumpTime = Date.now();
   event.preventDefault();
   triggerJumpAction();
 }
 
 function handleMouseDown(event) {
+  if (isIntroOrUiTarget(event.target)) return;
   // Ignore ghost clicks that follow a touch on mobile
   if (Date.now() - lastTouchJumpTime < 600) return;
   triggerJumpAction();
@@ -1524,7 +1541,9 @@ function resetGame() {
   hero.status = "running";
   hero.nod();
   applyResponsiveCamera();
-  audio.play();
+  try {
+    audio.play();
+  } catch (err) {}
   updateLevel();
   clearInterval(levelInterval);
   levelInterval = setInterval(updateLevel, levelUpdateFreq);
@@ -1536,17 +1555,30 @@ function initUI() {
   startScreen = document.getElementById("startScreen");
   startBtn = document.getElementById("startBtn");
 
+  var introStarted = false;
+  function onIntroStart(event) {
+    if (introStarted || gameStatus !== "waitingToStart") return;
+    introStarted = true;
+    if (event) {
+      if (event.cancelable) event.preventDefault();
+      event.stopPropagation();
+    }
+    lastTouchJumpTime = Date.now();
+    startGameFromIntro();
+  }
+
+  // pointer/touch/click — WebViews (Messenger/Zalo) often skip click alone
+  var startEvents = ["pointerup", "touchend", "click"];
   if (startBtn) {
-    startBtn.addEventListener(
-      "click",
-      function (event) {
-        event.preventDefault();
-        event.stopPropagation();
-        lastTouchJumpTime = Date.now();
-        startGameFromIntro();
-      },
-      false,
-    );
+    for (var i = 0; i < startEvents.length; i++) {
+      startBtn.addEventListener(startEvents[i], onIntroStart, false);
+    }
+  }
+  // Fallback: tap anywhere on the intro overlay
+  if (startScreen) {
+    for (var j = 0; j < startEvents.length; j++) {
+      startScreen.addEventListener(startEvents[j], onIntroStart, false);
+    }
   }
 }
 
