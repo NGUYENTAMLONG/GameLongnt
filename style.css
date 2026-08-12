@@ -1,0 +1,279 @@
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&display=swap");
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  background-color: #dbe6e6;
+  font-family: "Be Vietnam Pro", sans-serif;
+}
+
+#world {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #dbe6e6;
+  overflow: hidden;
+  touch-action: none;
+}
+
+#world canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none;
+}
+
+/* ——— Start / gift screen ——— */
+#startScreen {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  text-align: center;
+  background: linear-gradient(
+    180deg,
+    rgba(219, 230, 230, 0.92) 0%,
+    rgba(214, 234, 230, 0.88) 45%,
+    rgba(255, 197, 162, 0.35) 100%
+  );
+  backdrop-filter: blur(2px);
+  transition: opacity 420ms ease, visibility 420ms ease;
+}
+
+#startScreen.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.gift-eyebrow {
+  margin: 0 0 14px;
+  font-size: clamp(13px, 3.4vw, 15px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7a5a45;
+}
+
+.gift-title {
+  margin: 0 0 12px;
+  font-size: clamp(28px, 8vw, 48px);
+  font-weight: 700;
+  line-height: 1.15;
+  color: #dc5f45;
+  letter-spacing: -0.02em;
+}
+
+.gift-line {
+  margin: 0 0 28px;
+  max-width: 22em;
+  font-size: clamp(14px, 3.8vw, 17px);
+  font-weight: 400;
+  line-height: 1.45;
+  color: #544027;
+}
+
+#startBtn {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  padding: 14px 36px;
+  font-family: inherit;
+  font-size: clamp(15px, 3.8vw, 17px);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: #dc5f45;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+#startBtn:hover,
+#startBtn:focus-visible {
+  background: #c44f38;
+}
+
+#startBtn:active {
+  transform: scale(0.97);
+}
+
+body.is-intro .hud {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ——— Game over ——— */
+#gameoverInstructions {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(100%, 920px);
+  padding: 0 16px;
+  font-family: "Be Vietnam Pro", sans-serif;
+  text-align: center;
+  color: #ffc5a2;
+  opacity: 0;
+  transform: translate(-50%, -100%);
+  user-select: none;
+  transition: all 500ms ease-in-out;
+  pointer-events: none;
+  z-index: 5;
+}
+
+#gameoverInstructions .go-title {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: clamp(42px, 14vw, 96px);
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+}
+
+#gameoverInstructions .go-sub {
+  margin-top: 10px;
+  font-size: clamp(14px, 3.6vw, 18px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff4ec;
+  opacity: 0.95;
+}
+
+#gameoverInstructions.show {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+
+/* ——— HUD ——— */
+#dist {
+  position: absolute;
+  left: 50%;
+  top: max(16px, env(safe-area-inset-top, 0px));
+  transform: translate(-50%, 0%);
+  padding-top: 12px;
+  user-select: none;
+  pointer-events: none;
+  z-index: 4;
+  transition: opacity 300ms ease;
+}
+
+.label {
+  position: relative;
+  text-transform: uppercase;
+  color: #ffa873;
+  font-size: clamp(11px, 2.8vw, 12px);
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+#distValue {
+  position: relative;
+  text-transform: uppercase;
+  color: #dc5f45;
+  font-size: clamp(28px, 8vw, 40px);
+  font-weight: 700;
+  text-align: center;
+}
+
+#credits {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0 12px max(12px, env(safe-area-inset-bottom, 0px));
+  color: #544027;
+  font-size: clamp(10px, 2.6vw, 12px);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  text-align: center;
+  user-select: none;
+  z-index: 4;
+}
+
+#instructions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0 16px calc(40px + env(safe-area-inset-bottom, 0px));
+  color: #dc5f45;
+  font-size: clamp(12px, 3.4vw, 16px);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.35;
+  user-select: none;
+  pointer-events: none;
+  z-index: 4;
+  transition: opacity 300ms ease;
+}
+
+.lightInstructions {
+  color: #5f9042;
+}
+
+.tapHint {
+  display: none;
+}
+
+.clickHint {
+  display: inline;
+}
+
+@media (hover: none) and (pointer: coarse), (max-width: 768px) {
+  .tapHint {
+    display: inline;
+  }
+
+  .clickHint {
+    display: none;
+  }
+
+  .lightInstructions {
+    display: block;
+    margin-top: 4px;
+  }
+
+  #instructions {
+    padding-bottom: calc(48px + env(safe-area-inset-bottom, 0px));
+  }
+
+  #credits {
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (max-width: 480px) and (orientation: portrait) {
+  #dist {
+    top: max(8px, env(safe-area-inset-top, 0px));
+  }
+
+  #gameoverInstructions .go-title {
+    font-size: clamp(36px, 16vw, 72px);
+  }
+}

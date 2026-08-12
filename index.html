@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <title>Cuộc chạy của Ánh ✦</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="is-intro">
+    <div id="world"></div>
+
+    <div id="startScreen" aria-hidden="false">
+      <p class="gift-eyebrow">✦ Tặng Ánh — 12/08/2026</p>
+      <h1 class="gift-title">Cuộc chạy của Ánh</h1>
+      <p class="gift-line">Một game nhỏ thôi. Chơi thử nha.</p>
+      <button type="button" id="startBtn">Bắt đầu</button>
+    </div>
+
+    <div id="gameoverInstructions">
+      <div class="go-title">Ôi không!</div>
+      <div class="go-sub">Chạm để thử lại</div>
+    </div>
+
+    <div id="dist" class="hud">
+      <div class="label">quãng đường</div>
+      <div id="distValue">000</div>
+    </div>
+
+    <div id="instructions" class="hud">
+      <span class="tapHint">Chạm để nhảy</span
+      ><span class="clickHint">Click để nhảy</span
+      ><span class="lightInstructions">
+        — Nhặt cà rốt / né nhím</span
+      >
+    </div>
+
+    <div id="credits">
+      <p>Made for Ánh ✦ by Tam Long</p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r80/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.19.0/TweenMax.min.js"></script>
+    <script src="./script.js"></script>
+  </body>
+</html>
