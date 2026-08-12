@@ -34,7 +34,7 @@ var monsterPosTarget = 0.65;
 var floorRotation = 0;
 var collisionObstacle = 10;
 var collisionBonus = 20;
-var gameStatus = "waitingToStart";
+var gameStatus = "play";
 var cameraPosGame = 160;
 var cameraPosGameOver = 260;
 var monsterAcceleration = 0.004;
@@ -44,7 +44,7 @@ var audio = new Audio(
   "https://s3-us-west-2.amazonaws.com/s.cdpn.io/264161/Antonio-Vivaldi-Summer_01.mp3",
 );
 
-var fieldGameOver, fieldDistance, startScreen, startBtn;
+var fieldGameOver, fieldDistance;
 
 //SCREEN & MOUSE VARIABLES
 
@@ -136,7 +136,7 @@ function applyResponsiveCamera() {
   var portrait = HEIGHT > WIDTH;
   var narrow = WIDTH < 768;
   camera.fov = portrait ? 68 : narrow ? 58 : 50;
-  if (gameStatus === "play" || gameStatus === "waitingToStart") {
+  if (gameStatus === "play") {
     var pos = getPlayCameraPosition();
     camera.position.x = pos.x;
     camera.position.y = pos.y;
@@ -217,22 +217,7 @@ function handleWindowResize() {
   applyResponsiveCamera();
 }
 
-function isIntroOrUiTarget(target) {
-  if (!target) return false;
-  if (gameStatus === "waitingToStart") return true;
-  if (target.closest) {
-    return !!(
-      target.closest("#startScreen") ||
-      target.closest("#startBtn") ||
-      target.closest("button") ||
-      target.closest("a")
-    );
-  }
-  return false;
-}
-
 function triggerJumpAction() {
-  if (gameStatus == "waitingToStart") return;
   if (gameStatus == "play") hero.jump();
   else if (gameStatus == "readyToReplay") {
     replay();
@@ -240,15 +225,12 @@ function triggerJumpAction() {
 }
 
 function handleTouchStart(event) {
-  // Messenger/Zalo WebViews: preventDefault on document kills button clicks
-  if (isIntroOrUiTarget(event.target)) return;
   lastTouchJumpTime = Date.now();
-  event.preventDefault();
+  if (event.cancelable) event.preventDefault();
   triggerJumpAction();
 }
 
 function handleMouseDown(event) {
-  if (isIntroOrUiTarget(event.target)) return;
   // Ignore ghost clicks that follow a touch on mobile
   if (Date.now() - lastTouchJumpTime < 600) return;
   triggerJumpAction();
@@ -1481,46 +1463,8 @@ function init(event) {
   createBonusParticles();
   createObstacle();
   initUI();
-  prepareWaitingScene();
-  loop();
-}
-
-function prepareWaitingScene() {
-  scene.add(hero.mesh);
-  hero.mesh.rotation.y = Math.PI / 2;
-  hero.mesh.position.y = 0;
-  hero.mesh.position.z = 0;
-  hero.mesh.position.x = 0;
-
-  monsterPos = 0.56;
-  monsterPosTarget = 0.65;
-  speed = 0;
-  level = 0;
-  distance = 0;
-  carrot.mesh.visible = true;
-  obstacle.mesh.visible = true;
-  gameStatus = "waitingToStart";
-  hero.status = "running";
-  hero.nod();
-  applyResponsiveCamera();
-  if (typeof updateMonsterPosition === "function" && monster) {
-    var angle = Math.PI * monsterPos;
-    monster.mesh.position.y =
-      -floorRadius + Math.sin(angle) * (floorRadius + 12);
-    monster.mesh.position.x = Math.cos(angle) * (floorRadius + 15);
-    monster.mesh.rotation.z = -Math.PI / 2 + angle;
-  }
-  if (fieldDistance) fieldDistance.innerHTML = "000";
-}
-
-function startGameFromIntro() {
-  if (gameStatus !== "waitingToStart") return;
-  if (startScreen) {
-    startScreen.classList.add("is-hidden");
-    startScreen.setAttribute("aria-hidden", "true");
-  }
-  document.body.classList.remove("is-intro");
   resetGame();
+  loop();
 }
 
 function resetGame() {
@@ -1552,33 +1496,11 @@ function resetGame() {
 function initUI() {
   fieldDistance = document.getElementById("distValue");
   fieldGameOver = document.getElementById("gameoverInstructions");
-  startScreen = document.getElementById("startScreen");
-  startBtn = document.getElementById("startBtn");
-
-  var introStarted = false;
-  function onIntroStart(event) {
-    if (introStarted || gameStatus !== "waitingToStart") return;
-    introStarted = true;
-    if (event) {
-      if (event.cancelable) event.preventDefault();
-      event.stopPropagation();
-    }
-    lastTouchJumpTime = Date.now();
-    startGameFromIntro();
-  }
-
-  // pointer/touch/click — WebViews (Messenger/Zalo) often skip click alone
-  var startEvents = ["pointerup", "touchend", "click"];
-  if (startBtn) {
-    for (var i = 0; i < startEvents.length; i++) {
-      startBtn.addEventListener(startEvents[i], onIntroStart, false);
-    }
-  }
-  // Fallback: tap anywhere on the intro overlay
-  if (startScreen) {
-    for (var j = 0; j < startEvents.length; j++) {
-      startScreen.addEventListener(startEvents[j], onIntroStart, false);
-    }
+  var giftNote = document.getElementById("giftNote");
+  if (giftNote) {
+    setTimeout(function () {
+      giftNote.classList.add("is-faded");
+    }, 3500);
   }
 }
 

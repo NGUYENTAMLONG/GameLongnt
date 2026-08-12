@@ -21,10 +21,6 @@ body {
   font-family: "Be Vietnam Pro", sans-serif;
 }
 
-body.is-intro {
-  touch-action: manipulation;
-}
-
 #world {
   position: absolute;
   inset: 0;
@@ -40,107 +36,29 @@ body.is-intro {
   width: 100% !important;
   height: 100% !important;
   touch-action: none;
-  pointer-events: none;
 }
 
-body:not(.is-intro) #world canvas {
-  pointer-events: auto;
-}
-
-/* ——— Start / gift screen ——— */
-#startScreen {
+#giftNote {
   position: absolute;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
-  text-align: center;
-  background: linear-gradient(
-    180deg,
-    rgba(219, 230, 230, 0.92) 0%,
-    rgba(214, 234, 230, 0.88) 45%,
-    rgba(255, 197, 162, 0.35) 100%
-  );
-  /* Avoid backdrop-filter — flaky in Messenger/Zalo WebViews */
-  pointer-events: auto;
-  touch-action: manipulation;
-  -webkit-user-select: none;
-  user-select: none;
-  transition: opacity 420ms ease, visibility 420ms ease;
-}
-
-#startScreen.is-hidden {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.gift-eyebrow {
-  margin: 0 0 14px;
-  font-size: clamp(13px, 3.4vw, 15px);
+  left: 50%;
+  top: max(10px, env(safe-area-inset-top, 0px));
+  transform: translateX(-50%);
+  z-index: 6;
+  padding: 6px 12px;
+  font-size: clamp(11px, 2.8vw, 13px);
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #7a5a45;
-}
-
-.gift-title {
-  margin: 0 0 12px;
-  font-size: clamp(28px, 8vw, 48px);
-  font-weight: 700;
-  line-height: 1.15;
-  color: #dc5f45;
-  letter-spacing: -0.02em;
-}
-
-.gift-line {
-  margin: 0 0 28px;
-  max-width: 22em;
-  font-size: clamp(14px, 3.8vw, 17px);
-  font-weight: 400;
-  line-height: 1.45;
-  color: #544027;
-}
-
-#startBtn {
-  appearance: none;
-  -webkit-appearance: none;
-  border: none;
-  border-radius: 999px;
-  padding: 14px 36px;
-  min-height: 48px;
-  min-width: 140px;
-  font-family: inherit;
-  font-size: clamp(15px, 3.8vw, 17px);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: #fff;
-  background: #dc5f45;
-  cursor: pointer;
-  pointer-events: auto;
-  touch-action: manipulation;
-  -webkit-user-select: none;
-  user-select: none;
-  position: relative;
-  z-index: 21;
-  transition: transform 160ms ease, background 160ms ease;
-}
-
-#startBtn:hover,
-#startBtn:focus-visible {
-  background: #c44f38;
-}
-
-#startBtn:active {
-  transform: scale(0.97);
-}
-
-body.is-intro .hud {
-  opacity: 0;
+  text-align: center;
   pointer-events: none;
+  user-select: none;
+  opacity: 1;
+  transition: opacity 800ms ease;
+}
+
+#giftNote.is-faded {
+  opacity: 0;
 }
 
 /* ——— Game over ——— */
@@ -188,13 +106,12 @@ body.is-intro .hud {
 #dist {
   position: absolute;
   left: 50%;
-  top: max(16px, env(safe-area-inset-top, 0px));
+  top: max(36px, calc(env(safe-area-inset-top, 0px) + 28px));
   transform: translate(-50%, 0%);
   padding-top: 12px;
   user-select: none;
   pointer-events: none;
   z-index: 4;
-  transition: opacity 300ms ease;
 }
 
 .label {
@@ -251,7 +168,6 @@ body.is-intro .hud {
   user-select: none;
   pointer-events: none;
   z-index: 4;
-  transition: opacity 300ms ease;
 }
 
 .lightInstructions {
@@ -291,7 +207,7 @@ body.is-intro .hud {
 
 @media (max-width: 480px) and (orientation: portrait) {
   #dist {
-    top: max(8px, env(safe-area-inset-top, 0px));
+    top: max(32px, calc(env(safe-area-inset-top, 0px) + 24px));
   }
 
   #gameoverInstructions .go-title {
